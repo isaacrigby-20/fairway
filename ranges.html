@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Ranges, Simulators & Mini Golf — Fairway Ontario</title>
+<meta name="description" content="Find driving ranges, golf simulators, and mini golf in Ontario. Filter by type, region, and price."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ── TOKENS ────────────────────────────────────────────────────────────────── */
+:root{
+  --forest:#1a2e1a;--pine:#2d4a2d;--sage:#5c7a4e;--meadow:#8aab70;
+  --cream:#f5f0e8;--parchment:#ede8de;--warm-white:#faf7f2;
+  --gold:#c4973a;--gold-light:#d4a94a;
+  --ink:#2c3e2c;--mist:#8a9e8a;--fog:#b8c8b8;
+  --sim:#2563eb;--range:#059669;--mini:#d97706;
+  --r:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--warm-white);color:var(--ink);-webkit-font-smoothing:antialiased}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:100;background:var(--forest);border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;padding:0 28px;height:64px;gap:32px}
+.nav-logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--cream);letter-spacing:.04em;text-decoration:none;display:flex;align-items:center;gap:8px}
+.nav-logo span{color:var(--gold)}
+.nav-links{display:flex;gap:24px;margin-left:auto;align-items:center}
+.nav-links a{font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:rgba(245,240,232,.55);text-decoration:none;transition:color .2s}
+.nav-links a:hover,.nav-links a.active{color:var(--cream)}
+.nav-cta{background:var(--gold);color:var(--forest)!important;padding:8px 18px;border-radius:var(--r);font-weight:600!important;opacity:1!important}
+
+/* ── HERO ── */
+.hero{background:var(--forest);padding:72px 28px 56px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 60% 40%,rgba(92,122,78,.25),transparent);pointer-events:none}
+.hero-inner{max-width:900px;margin:0 auto;position:relative}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:16px}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(38px,6vw,62px);font-weight:300;color:var(--cream);line-height:1.1;margin-bottom:18px}
+.hero-title em{font-style:italic;color:var(--meadow)}
+.hero-sub{font-size:16px;color:rgba(245,240,232,.65);max-width:540px;line-height:1.6;margin-bottom:36px}
+.hero-stats{display:flex;gap:32px;flex-wrap:wrap}
+.hero-stat{text-align:center}
+.hero-stat-num{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--gold);line-height:1}
+.hero-stat-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(245,240,232,.45);margin-top:4px}
+
+/* ── BACK LINK ── */
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:rgba(245,240,232,.5);text-decoration:none;margin-bottom:28px;transition:color .2s}
+.back-link:hover{color:var(--cream)}
+.back-link svg{transition:transform .2s}
+.back-link:hover svg{transform:translateX(-3px)}
+
+/* ── FILTERS ── */
+.filters{background:var(--forest);border-bottom:1px solid rgba(255,255,255,.07);position:sticky;top:64px;z-index:90}
+.filters-inner{max-width:1400px;margin:0 auto;padding:0 28px;display:flex;align-items:center;gap:0;overflow-x:auto;scrollbar-width:none;height:56px}
+.filters-inner::-webkit-scrollbar{display:none}
+.filter-group{display:flex;gap:6px;flex-shrink:0;padding:0 16px 0 0}
+.filter-group:first-child{padding-left:0}
+.filter-divider{width:1px;height:28px;background:rgba(255,255,255,.1);flex-shrink:0;margin:0 12px}
+.filter-btn{background:transparent;border:1.5px solid rgba(245,240,232,.15);color:rgba(245,240,232,.6);padding:6px 14px;border-radius:20px;font-size:11px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;white-space:nowrap}
+.filter-btn:hover{border-color:rgba(245,240,232,.4);color:var(--cream)}
+.filter-btn.active{background:var(--gold);border-color:var(--gold);color:var(--forest);font-weight:600}
+/* Type-specific active colours */
+.filter-btn.active-sim{background:var(--sim);border-color:var(--sim);color:#fff}
+.filter-btn.active-range{background:var(--range);border-color:var(--range);color:#fff}
+.filter-btn.active-mini{background:var(--mini);border-color:var(--mini);color:#fff}
+.filter-select{background:transparent;border:1.5px solid rgba(245,240,232,.15);color:rgba(245,240,232,.7);padding:6px 28px 6px 12px;border-radius:20px;font-size:11px;font-weight:500;letter-spacing:.05em;cursor:pointer;font-family:'DM Sans',sans-serif;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='rgba(245,240,232,.5)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;white-space:nowrap;transition:border-color .2s}
+.filter-select:hover{border-color:rgba(245,240,232,.4);color:var(--cream)}
+.filter-select option{background:var(--forest);color:var(--cream)}
+.results-count{font-size:11px;color:rgba(245,240,232,.4);white-space:nowrap;margin-left:auto;padding-left:16px}
+
+/* ── TYPE BADGES ── */
+.badge{display:inline-block;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:20px}
+.badge-sim{background:rgba(37,99,235,.15);color:#60a5fa;border:1px solid rgba(37,99,235,.25)}
+.badge-range{background:rgba(5,150,105,.15);color:#34d399;border:1px solid rgba(5,150,105,.25)}
+.badge-mini{background:rgba(217,119,6,.15);color:#fbbf24;border:1px solid rgba(217,119,6,.25)}
+
+/* ── GRID ── */
+.grid-section{padding:40px 28px 80px;max-width:1400px;margin:0 auto}
+.venue-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
+.no-results{text-align:center;padding:80px 20px;grid-column:1/-1}
+.no-results h3{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--forest);margin-bottom:8px}
+.no-results p{color:var(--mist);font-size:14px}
+
+/* ── VENUE CARD ── */
+.venue-card{background:#fff;border:1.5px solid rgba(26,46,26,.07);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .22s;display:flex;flex-direction:column}
+.venue-card:hover{border-color:rgba(92,122,78,.35);box-shadow:0 6px 28px rgba(26,46,26,.11);transform:translateY(-2px)}
+.card-accent{height:4px;flex-shrink:0}
+.accent-sim{background:linear-gradient(90deg,#2563eb,#60a5fa)}
+.accent-range{background:linear-gradient(90deg,#059669,#34d399)}
+.accent-mini{background:linear-gradient(90deg,#d97706,#fbbf24)}
+.card-body{padding:18px 18px 14px;flex:1;display:flex;flex-direction:column}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px}
+.card-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--forest);line-height:1.2;flex:1}
+.card-fee{text-align:right;flex-shrink:0}
+.card-fee-num{font-size:20px;font-weight:600;color:var(--forest);font-family:'Cormorant Garamond',serif}
+.card-fee-label{font-size:9px;color:var(--mist);letter-spacing:.04em;display:block;text-align:right}
+.card-location{font-size:11px;color:var(--mist);display:flex;align-items:center;gap:4px;margin-bottom:10px}
+.card-desc{font-size:13px;color:#4a5e4a;line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:12px;flex:1}
+.card-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+.card-tag{font-size:9px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:20px;background:rgba(92,122,78,.08);color:var(--sage)}
+.card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid rgba(26,46,26,.06)}
+.card-rating{font-size:11px;color:var(--ink);display:flex;align-items:center;gap:3px}
+.card-rating svg{color:var(--gold)}
+.card-action{background:var(--forest);color:var(--cream);border:none;padding:7px 16px;border-radius:var(--r);font-size:11px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.04em;transition:background .2s}
+.card-action:hover{background:var(--pine)}
+.card-action.sim{background:var(--sim)}
+.card-action.sim:hover{background:#1d4ed8}
+.card-action.range{background:var(--range)}
+.card-action.range:hover{background:#047857}
+.card-action.mini{background:var(--mini)}
+.card-action.mini:hover{background:#b45309}
+
+/* ── AMENITY CHIPS ── */
+.amenity-chip{font-size:9px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:20px;background:rgba(26,46,26,.05);color:var(--ink);border:1px solid rgba(26,46,26,.08)}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(10,18,10,.7);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:12px;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;position:relative;box-shadow:0 24px 80px rgba(0,0,0,.35)}
+.modal-header{padding:28px 28px 20px;border-bottom:1px solid rgba(26,46,26,.08)}
+.modal-accent{height:5px;border-radius:12px 12px 0 0;margin:-28px -28px 20px}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--forest);line-height:1.15;margin:8px 0 4px}
+.modal-location{font-size:12px;color:var(--mist)}
+.modal-body{padding:24px 28px}
+.modal-desc{font-size:14px;color:#3a4e3a;line-height:1.65;margin-bottom:20px}
+.modal-section-title{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--mist);margin-bottom:10px}
+.modal-price-block{background:var(--parchment);border-radius:8px;padding:18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
+.modal-price-main{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:var(--forest)}
+.modal-price-label{font-size:11px;color:var(--mist)}
+.modal-amenities{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px}
+.modal-actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn-primary{flex:1;background:var(--forest);color:var(--cream);border:none;padding:12px 20px;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.04em;transition:background .2s}
+.btn-primary:hover{background:var(--pine)}
+.btn-primary.sim{background:var(--sim)}
+.btn-primary.range{background:var(--range)}
+.btn-primary.mini{background:var(--mini)}
+.btn-secondary{background:transparent;border:1.5px solid rgba(26,46,26,.2);color:var(--forest);padding:12px 20px;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.04em;transition:all .2s}
+.btn-secondary:hover{background:rgba(26,46,26,.05)}
+.modal-contact{font-size:12px;color:var(--mist);margin-top:12px}
+.modal-contact a{color:var(--sage);text-decoration:none}
+.modal-close{position:absolute;top:16px;right:16px;background:rgba(26,46,26,.06);border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.modal-close:hover{background:rgba(26,46,26,.12)}
+
+/* ── LOAD MORE ── */
+.load-more-wrap{text-align:center;margin-top:32px}
+.load-more-btn{background:transparent;border:1.5px solid rgba(26,46,26,.2);color:var(--forest);padding:12px 36px;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.05em;transition:all .2s}
+.load-more-btn:hover{background:var(--forest);color:var(--cream)}
+
+/* ── CTA BAND ── */
+.cta-band{background:linear-gradient(135deg,var(--pine),var(--forest));padding:64px 28px;text-align:center}
+.cta-band h2{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:var(--cream);margin-bottom:12px}
+.cta-band p{color:rgba(245,240,232,.6);margin-bottom:28px;font-size:15px}
+.cta-band a{display:inline-block;background:var(--gold);color:var(--forest);padding:12px 28px;border-radius:var(--r);font-size:12px;font-weight:600;letter-spacing:.05em;text-decoration:none;transition:background .2s}
+.cta-band a:hover{background:var(--gold-light)}
+
+/* ── FOOTER ── */
+footer{background:var(--forest);padding:40px 28px;text-align:center;border-top:1px solid rgba(255,255,255,.07)}
+footer p{font-size:12px;color:rgba(245,240,232,.3)}
+footer a{color:rgba(245,240,232,.5);text-decoration:none;margin:0 8px;font-size:12px}
+footer a:hover{color:var(--cream)}
+
+@media(max-width:768px){
+  .hero-title{font-size:36px}
+  .venue-grid{grid-template-columns:1fr}
+  .modal{max-height:100vh;border-radius:0}
+  .nav-links{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">Fair<span>way</span></a>
+  <div class="nav-links">
+    <a href="index.html">Golf Courses</a>
+    <a href="ranges.html" class="active">Ranges & More</a>
+    <a href="index.html#regions">Regions</a>
+    <a href="#list-your-venue" class="nav-cta">List Your Venue</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <a href="index.html" class="back-link">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 2L4 7l5 5"/></svg>
+      Back to Golf Courses
+    </a>
+    <div class="hero-eyebrow">Ontario Golf — Beyond the Fairway</div>
+    <h1 class="hero-title">Ranges, Simulators<br>&amp; <em>Mini Golf</em></h1>
+    <p class="hero-sub">Practice your swing, play year-round indoors, or make it a family outing. Ontario's best off-course golf experiences.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-num" id="statSim">12</div><div class="hero-stat-label">Simulators</div></div>
+      <div class="hero-stat"><div class="hero-stat-num" id="statRange">7</div><div class="hero-stat-label">Driving Ranges</div></div>
+      <div class="hero-stat"><div class="hero-stat-num" id="statMini">5</div><div class="hero-stat-label">Mini Golf</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FILTERS -->
+<div class="filters">
+  <div class="filters-inner">
+    <div class="filter-group">
+      <button class="filter-btn active" id="btnAll" data-type="All">All</button>
+      <button class="filter-btn" id="btnSim" data-type="Simulator">🎮 Simulators</button>
+      <button class="filter-btn" id="btnRange" data-type="Driving Range">🏌️ Ranges</button>
+      <button class="filter-btn" id="btnMini" data-type="Mini Golf">⛳ Mini Golf</button>
+    </div>
+    <div class="filter-divider"></div>
+    <div class="filter-group">
+      <select class="filter-select" id="regionFilter">
+        <option value="">All Regions</option>
+        <option value="Greater Toronto Area">Greater Toronto Area</option>
+        <option value="Niagara Region">Niagara Region</option>
+        <option value="Barrie & Georgian Bay">Barrie &amp; Georgian Bay</option>
+        <option value="Hamilton & Halton">Hamilton &amp; Halton</option>
+        <option value="Southwestern Ontario">Southwestern Ontario</option>
+        <option value="Kawartha Lakes">Kawartha Lakes</option>
+        <option value="Muskoka & Cottage Country">Muskoka &amp; Cottage Country</option>
+        <option value="Eastern Ontario">Eastern Ontario</option>
+        <option value="Northern Ontario">Northern Ontario</option>
+      </select>
+    </div>
+    <div class="filter-divider"></div>
+    <div class="filter-group">
+      <select class="filter-select" id="sortFilter" >
+        <option value="rating">Top Rated</option>
+        <option value="az">A–Z</option>
+        <option value="price_asc">Price: Low to High</option>
+        <option value="price_desc">Price: High to Low</option>
+      </select>
+    </div>
+    <span class="results-count" id="resultsCount"></span>
+  </div>
+</div>
+
+<!-- GRID -->
+<section class="grid-section">
+  <div class="venue-grid" id="venueGrid"></div>
+  <div class="load-more-wrap" id="loadMoreWrap" style="display:none">
+    <button class="load-more-btn" id="loadMoreBtn">Load More</button>
+  </div>
+</section>
+
+<!-- CTA BAND -->
+<section class="cta-band" id="list-your-venue">
+  <h2>Own a Range, Simulator or Mini Golf?</h2>
+  <p>List your venue free on Fairway and reach Ontario golfers year-round.</p>
+  <a href="/cdn-cgi/l/email-protection#056d6069696a457569647c63646c7772647c2b6664">List Your Venue Free</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p style="margin-bottom:12px"><a href="index.html">Golf Courses</a><a href="ranges.html">Ranges & More</a><a href="/cdn-cgi/l/email-protection#6a020f0606052a1a060b130c0b03181d0b1344090b">Contact</a></p>
+  <p>&copy; 2025 Fairway · Ontario Golf Directory · No Hidden Fees</p>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <button class="modal-close" onclick="closeModalBtn()">
+      <svg width="14" height="14" viewBox="0 0 14 14" stroke="currentColor" stroke-width="2" fill="none"><path d="M2 2l10 10M12 2L2 12"/></svg>
+    </button>
+    <div class="modal-accent" id="modalAccent"></div>
+    <div class="modal-header">
+      <span class="badge" id="modalBadge"></span>
+      <h2 class="modal-title" id="modalTitle"></h2>
+      <p class="modal-location" id="modalLocation"></p>
+    </div>
+    <div class="modal-body">
+      <p class="modal-desc" id="modalDesc"></p>
+      <div class="modal-price-block">
+        <div>
+          <div class="modal-price-main" id="modalPrice"></div>
+          <div class="modal-price-label" id="modalPriceLabel"></div>
+        </div>
+        <div id="modalRating"></div>
+      </div>
+      <div class="modal-section-title">Amenities</div>
+      <div class="modal-amenities" id="modalAmenities"></div>
+      <div class="modal-actions" id="modalActions"></div>
+      <div class="modal-contact" id="modalContact"></div>
+    </div>
+  </div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+const VENUES = JSON.parse(atob('W3siaWQiOjEsIm5hbWUiOiJUcmFjZXIgR29sZiIsInNsdWciOiJ0cmFjZXItZ29sZi10b3JvbnRvIiwiY2l0eSI6IlRvcm9udG8iLCJyZWdpb24iOiJHcmVhdGVyIFRvcm9udG8gQXJlYSIsImxhdCI6NDMuNjcyMSwibG5nIjotNzkuMzg3NSwidHlwZSI6IlNpbXVsYXRvciIsImhvbGVzIjpudWxsLCJmZWUiOjM1LCJmZWVfbGFiZWwiOiJwZXIgaG91ciIsInBob25lIjoiNDE2LTU1NS0wMTAxIiwid2Vic2l0ZSI6Imh0dHBzOi8vdHJhY2VyZ29sZi5jb20iLCJkZXNjcmlwdGlvbiI6IkhpZ2gtZW5kIGdvbGYgc2ltdWxhdG9ycyBpbiBkb3dudG93biBUb3JvbnRvLiBNdWx0aXBsZSBiYXlzIHdpdGggZnVsbCBzaG90IHRyYWNraW5nIGFuZCBjb3Vyc2UgbGlicmFyeS4iLCJyYXRpbmdfc2NvcmUiOjQuNiwicmF0aW5nX2NvdW50IjoxNjMsInRhZ3MiOlsic2ltdWxhdG9yIiwiZG93bnRvd24iLCJkYXRlX25pZ2h0Il0sImFtZW5pdGllcyI6WyJiYXIiLCJsb3VuZ2UiLCJmb29kIl19LHsiaWQiOjIsIm5hbWUiOiJUcmFjZXIgR29sZiBTY2FyYm9yb3VnaCIsInNsdWciOiJ0cmFjZXItZ29sZi1zY2FyYm9yb3VnaCIsImNpdHkiOiJTY2FyYm9yb3VnaCIsInJlZ2lvbiI6IkdyZWF0ZXIgVG9yb250byBBcmVhIiwibGF0Ijo0My43NzIsImxuZyI6LTc5LjIzMjksInR5cGUiOiJTaW11bGF0b3IiLCJob2xlcyI6bnVsbCwiZmVlIjozNSwiZmVlX2xhYmVsIjoicGVyIGhvdXIiLCJwaG9uZSI6IjQxNi01NTUtMDEwMiIsIndlYnNpdGUiOiJodHRwczovL3RyYWNlcmdvbGYuY29tIiwiZGVzY3JpcHRpb24iOiJFYXN0IFRvcm9udG8gc2ltdWxhdG9yIGJheSB3aXRoIGZ1bGwgYmFyIHNlcnZpY2UgYW5kIDgwKyB3b3JsZCBjb3Vyc2VzIGxvYWRlZC4iLCJyYXRpbmdfc2NvcmUiOjQuNywicmF0aW5nX2NvdW50IjoxODYsInRhZ3MiOlsic2ltdWxhdG9yIiwiZWFzdF90b3JvbnRvIl0sImFtZW5pdGllcyI6WyJiYXIiLCJsb3VuZ2UiLCJmb29kIl19LHsiaWQiOjMsIm5hbWUiOiJOZXh0IEdvbGYgVG9yb250byIsInNsdWciOiJuZXh0LWdvbGYtdG9yb250byIsImNpdHkiOiJTY2FyYm9yb3VnaCIsInJlZ2lvbiI6IkdyZWF0ZXIgVG9yb250byBBcmVhIiwibGF0Ijo0My43NjU0LCJsbmciOi03OS4yNTExLCJ0eXBlIjoiU2ltdWxhdG9yIiwiaG9sZXMiOm51bGwsImZlZSI6NDAsImZlZV9sYWJlbCI6InBlciBob3VyIiwicGhvbmUiOiI0MTYtNTU1LTAxMDMiLCJ3ZWJzaXRlIjoiaHR0cHM6Ly9uZXh0Z29sZi5jYSIsImRlc2NyaXB0aW9uIjoiUHJlbWl1bSBzaW11bGF0b3IgZXhwZXJpZW5jZSB3aXRoIFRyYWNrbWFuIHRlY2hub2xvZ3kgYW5kIHZpcnR1YWwgcm91bmRzIG9uIHRoZSB3b3JsZCdzIGJlc3QgY291cnNlcy4iLCJyYXRpbmdfc2NvcmUiOjQuOCwicmF0aW5nX2NvdW50IjoxMTQsInRhZ3MiOlsic2ltdWxhdG9yIiwidHJhY2ttYW4iLCJwcmVtaXVtIl0sImFtZW5pdGllcyI6WyJiYXIiLCJsb3VuZ2UiXX0seyJpZCI6NCwibmFtZSI6Ik5leHQgR29sZiBNaXNzaXNzYXVnYSIsInNsdWciOiJuZXh0LWdvbGYtbWlzc2lzc2F1Z2EiLCJjaXR5IjoiTWlzc2lzc2F1Z2EiLCJyZWdpb24iOiJHcmVhdGVyIFRvcm9udG8gQXJlYSIsImxhdCI6NDMuNTg5LCJsbmciOi03OS42NDQxLCJ0eXBlIjoiU2ltdWxhdG9yIiwiaG9sZXMiOm51bGwsImZlZSI6NDAsImZlZV9sYWJlbCI6InBlciBob3VyIiwicGhvbmUiOiI5MDUtNTU1LTAxMDQiLCJ3ZWJzaXRlIjoiaHR0cHM6Ly9uZXh0Z29sZi5jYSIsImRlc2NyaXB0aW9uIjoiV2VzdCBHVEEgc2ltdWxhdG9yIGxvdW5nZSB3aXRoIFRyYWNrbWFuIGJheXMgYW5kIGNyYWZ0IGJlZXIgb24gdGFwLiIsInJhdGluZ19zY29yZSI6NC44LCJyYXRpbmdfY291bnQiOjk4LCJ0YWdzIjpbInNpbXVsYXRvciIsInRyYWNrbWFuIiwid2VzdF9ndGEiXSwiYW1lbml0aWVzIjpbImJhciIsImxvdW5nZSJdfSx7ImlkIjo1LCJuYW1lIjoiVGhlIFNhbmQgVHJhcCIsInNsdWciOiJzYW5kLXRyYXAtdG9yb250byIsImNpdHkiOiJUb3JvbnRvIiwicmVnaW9uIjoiR3JlYXRlciBUb3JvbnRvIEFyZWEiLCJsYXQiOjQzLjY1NTMsImxuZyI6LTc5LjM4MDYsInR5cGUiOiJTaW11bGF0b3IiLCJob2xlcyI6bnVsbCwiZmVlIjozOCwiZmVlX2xhYmVsIjoicGVyIGhvdXIiLCJwaG9uZSI6IjQxNi01NTUtMDEwNSIsIndlYnNpdGUiOiJodHRwczovL3RoZXNhbmR0cmFwLmNhIiwiZGVzY3JpcHRpb24iOiJHb2xmIHNpbXVsYXRvciBsb3VuZ2UgaW4gdGhlIGhlYXJ0IG9mIHRoZSBjaXR5LiBHcmVhdCBmb3IgY29ycG9yYXRlIGV2ZW50cyBhbmQgZ3JvdXAgb3V0aW5ncy4iLCJyYXRpbmdfc2NvcmUiOjQuNywicmF0aW5nX2NvdW50IjoxNTcsInRhZ3MiOlsic2ltdWxhdG9yIiwiZXZlbnRzIiwiY29ycG9yYXRlIl0sImFtZW5pdGllcyI6WyJiYXIiLCJsb3VuZ2UiLCJmb29kIiwicHJpdmF0ZV9ldmVudHMiXX0seyJpZCI6NiwibmFtZSI6IjZpeCBJcm9uIEluZG9vciBHb2xmIiwic2x1ZyI6IjZpeC1pcm9uLWRvd250b3duIiwiY2l0eSI6IlRvcm9udG8iLCJyZWdpb24iOiJHcmVhdGVyIFRvcm9udG8gQXJlYSIsImxhdCI6NDMuNjQ3OCwibG5nIjotNzkuMzg4NywidHlwZSI6IlNpbXVsYXRvciIsImhvbGVzIjpudWxsLCJmZWUiOjM2LCJmZWVfbGFiZWwiOiJwZXIgaG91ciIsInBob25lIjoiNDE2LTU1NS0wMTA2Iiwid2Vic2l0ZSI6Imh0dHBzOi8vNml4aXJvbi5jb20iLCJkZXNjcmlwdGlvbiI6IkRvd250b3duIFRvcm9udG8gZ29sZiBzaW11bGF0b3Igd2l0aCBmdWxsLXNlcnZpY2UgYmFyIGFuZCAyMDArIGNvdXJzZXMgYXZhaWxhYmxlLiIsInJhdGluZ19zY29yZSI6NC41LCJyYXRpbmdfY291bnQiOjIxMiwidGFncyI6WyJzaW11bGF0b3IiLCJkb3dudG93biIsImJhciJdLCJhbWVuaXRpZXMiOlsiYmFyIiwibG91bmdlIiwiZm9vZCJdfSx7ImlkIjo3LCJuYW1lIjoiUGFjZSBvZiBQbGF5IEluZG9vciBHb2xmIiwic2x1ZyI6InBhY2Utb2YtcGxheS1taXNzaXNzYXVnYSIsImNpdHkiOiJNaXNzaXNzYXVnYSIsInJlZ2lvbiI6IkdyZWF0ZXIgVG9yb250byBBcmVhIiwibGF0Ijo0My42MDI0LCJsbmciOi03OS42NTEzLCJ0eXBlIjoiU2ltdWxhdG9yIiwiaG9sZXMiOm51bGwsImZlZSI6MzQsImZlZV9sYWJlbCI6InBlciBob3VyIiwicGhvbmUiOiI5MDUtNTU1LTAxMDciLCJ3ZWJzaXRlIjoiaHR0cHM6Ly9wYWNlb2ZwbGF5LmNhIiwiZGVzY3JpcHRpb24iOiJNaXNzaXNzYXVnYSdzIGZhdm91cml0ZSBzaW11bGF0b3IgY2VudHJlIHdpdGggbGVzc29ucywgbGVhZ3VlcywgYW5kIG9wZW4gcGxheSBhdmFpbGFibGUgeWVhci1yb3VuZC4iLCJyYXRpbmdfc2NvcmUiOjQuNSwicmF0aW5nX2NvdW50IjoxNzgsInRhZ3MiOlsic2ltdWxhdG9yIiwibGVzc29ucyIsImxlYWd1ZXMiXSwiYW1lbml0aWVzIjpbImxvdW5nZSIsImxlc3NvbnMiXX0seyJpZCI6OCwibmFtZSI6IkFjZSBHb2xmIEJhciAmIExvdW5nZSIsInNsdWciOiJhY2UtZ29sZi1iYXItdG9yb250byIsImNpdHkiOiJUb3JvbnRvIiwicmVnaW9uIjoiR3JlYXRlciBUb3JvbnRvIEFyZWEiLCJsYXQiOjQzLjY1MzQsImxuZyI6LTc5LjM4MjEsInR5cGUiOiJTaW11bGF0b3IiLCJob2xlcyI6bnVsbCwiZmVlIjozMiwiZmVlX2xhYmVsIjoicGVyIGhvdXIiLCJwaG9uZSI6IjQxNi01NTUtMDEwOCIsIndlYnNpdGUiOiJodHRwczovL2FjZWdvbGZiYXIuY2EiLCJkZXNjcmlwdGlvbiI6IlNwb3J0cyBiYXIgbWVldHMgZ29sZiBzaW11bGF0b3IuIEdyZWF0IGZvb2QsIGNvbGQgZHJpbmtzLCBhbmQgY29tcGV0aXRpdmUgc2ltdWxhdG9yIGxlYWd1ZXMgZXZlcnkgd2Vlay4iLCJyYXRpbmdfc2NvcmUiOjQuOCwicmF0aW5nX2NvdW50IjoxNjMsInRhZ3MiOlsic2ltdWxhdG9yIiwiYmFyIiwic3BvcnRzX2JhciIsImxlYWd1ZXMiXSwiYW1lbml0aWVzIjpbImJhciIsImZvb2QiLCJsb3VuZ2UiLCJsZWFndWVzIl19LHsiaWQiOjksIm5hbWUiOiJOZXh0IEdvbGYgUGV0ZXJib3JvdWdoIiwic2x1ZyI6Im5leHQtZ29sZi1wZXRlcmJvcm91Z2giLCJjaXR5IjoiUGV0ZXJib3JvdWdoIiwicmVnaW9uIjoiS2F3YXJ0aGEgTGFrZXMiLCJsYXQiOjQ0LjMwMzEsImxuZyI6LTc4LjMxOTcsInR5cGUiOiJTaW11bGF0b3IiLCJob2xlcyI6bnVsbCwiZmVlIjozOCwiZmVlX2xhYmVsIjoicGVyIGhvdXIiLCJwaG9uZSI6IjcwNS01NTUtMDEwOSIsIndlYnNpdGUiOiJodHRwczovL25leHRnb2xmLmNhIiwiZGVzY3JpcHRpb24iOiJQZXRlcmJvcm91Z2gncyBwcmVtaXVtIGluZG9vciBnb2xmIGV4cGVyaWVuY2Ugd2l0aCBUcmFja21hbiB0ZWNobm9sb2d5LiIsInJhdGluZ19zY29yZSI6NC43LCJyYXRpbmdfY291bnQiOjY3LCJ0YWdzIjpbInNpbXVsYXRvciIsInRyYWNrbWFuIiwia2F3YXJ0aGEiXSwiYW1lbml0aWVzIjpbImJhciIsImxvdW5nZSJdfSx7ImlkIjoxMCwibmFtZSI6Ik5leHQgR29sZiBCcm9ja3ZpbGxlIiwic2x1ZyI6Im5leHQtZ29sZi1icm9ja3ZpbGxlIiwiY2l0eSI6IkJyb2NrdmlsbGUiLCJyZWdpb24iOiJFYXN0ZXJuIE9udGFyaW8iLCJsYXQiOjQ0LjU4OTYsImxuZyI6LTc1LjY4NTgsInR5cGUiOiJTaW11bGF0b3IiLCJob2xlcyI6bnVsbCwiZmVlIjozNSwiZmVlX2xhYmVsIjoicGVyIGhvdXIiLCJwaG9uZSI6IjYxMy01NTUtMDExMCIsIndlYnNpdGUiOiJodHRwczovL25leHRnb2xmLmNhIiwiZGVzY3JpcHRpb24iOiJFYXN0ZXJuIE9udGFyaW8gc2ltdWxhdG9yIHdpdGggZnVsbCBiYXIgYW5kIHByaXZhdGUgYmF5IGJvb2tpbmdzIGF2YWlsYWJsZS4iLCJyYXRpbmdfc2NvcmUiOjQuNiwicmF0aW5nX2NvdW50Ijo0NSwidGFncyI6WyJzaW11bGF0b3IiLCJlYXN0ZXJuX29udGFyaW8iXSwiYW1lbml0aWVzIjpbImJhciIsImxvdW5nZSJdfSx7ImlkIjoxMSwibmFtZSI6Ik5leHQgR29sZiBLaW5nc3RvbiIsInNsdWciOiJuZXh0LWdvbGYta2luZ3N0b24iLCJjaXR5IjoiS2luZ3N0b24iLCJyZWdpb24iOiJFYXN0ZXJuIE9udGFyaW8iLCJsYXQiOjQ0LjIyOTgsImxuZyI6LTc2LjQ4MTksInR5cGUiOiJTaW11bGF0b3IiLCJob2xlcyI6bnVsbCwiZmVlIjozOCwiZmVlX2xhYmVsIjoicGVyIGhvdXIiLCJwaG9uZSI6IjYxMy01NTUtMDExMSIsIndlYnNpdGUiOiJodHRwczovL25leHRnb2xmLmNhIiwiZGVzY3JpcHRpb24iOiJLaW5nc3RvbidzIGdvLXRvIHdpbnRlciBnb2xmIGZpeC4gVHJhY2ttYW4gYmF5cyB3aXRoIGZ1bGwgYmFyIHNlcnZpY2UuIiwicmF0aW5nX3Njb3JlIjo0LjcsInJhdGluZ19jb3VudCI6ODksInRhZ3MiOlsic2ltdWxhdG9yIiwia2luZ3N0b24iLCJ0cmFja21hbiJdLCJhbWVuaXRpZXMiOlsiYmFyIiwibG91bmdlIl19LHsiaWQiOjEyLCJuYW1lIjoiTXVsbGlnYW5zIEdvbGYgTG91bmdlIiwic2x1ZyI6Im11bGxpZ2Fucy1nb2xmLWxvdW5nZS1odW50c3ZpbGxlIiwiY2l0eSI6Ikh1bnRzdmlsbGUiLCJyZWdpb24iOiJNdXNrb2thICYgQ290dGFnZSBDb3VudHJ5IiwibGF0Ijo0NS4zMjM0LCJsbmciOi03OS4yMTg3LCJ0eXBlIjoiU2ltdWxhdG9yIiwiaG9sZXMiOm51bGwsImZlZSI6MzAsImZlZV9sYWJlbCI6InBlciBob3VyIiwicGhvbmUiOiI3MDUtNTU1LTAxMTIiLCJ3ZWJzaXRlIjoiaHR0cHM6Ly9tdWxsaWdhbnNodW50c3ZpbGxlLmNhIiwiZGVzY3JpcHRpb24iOiJNdXNrb2thJ3MgaW5kb29yIGdvbGYgZXNjYXBlLiBQZXJmZWN0IGZvciBjb3R0YWdlIGNvdW50cnkgb2ZmLXNlYXNvbiByb3VuZHMuIiwicmF0aW5nX3Njb3JlIjo0LjUsInJhdGluZ19jb3VudCI6NzgsInRhZ3MiOlsic2ltdWxhdG9yIiwibXVza29rYSIsImNvdHRhZ2VfY291bnRyeSJdLCJhbWVuaXRpZXMiOlsiYmFyIiwibG91bmdlIiwiZm9vZCJdfSx7ImlkIjoxMywibmFtZSI6IktpcmJ5IExpbmtzIEdvbGYgQ291cnNlICsgUmFuZ2UiLCJzbHVnIjoia2lyYnktbGlua3MtbWFwbGUiLCJjaXR5IjoiTWFwbGUiLCJyZWdpb24iOiJHcmVhdGVyIFRvcm9udG8gQXJlYSIsImxhdCI6NDMuODU2NywibG5nIjotNzkuNTIzNCwidHlwZSI6IkRyaXZpbmcgUmFuZ2UiLCJob2xlcyI6OSwiZmVlIjoxNiwiZmVlX2xhYmVsIjoibGFyZ2UgYnVja2V0IiwicGhvbmUiOiI5MDUtNTU1LTAxMTMiLCJ3ZWJzaXRlIjoiaHR0cHM6Ly9raXJieWxpbmtzLmNvbSIsImRlc2NyaXB0aW9uIjoiUG9wdWxhciBub3J0aCBWYXVnaGFuIHJhbmdlIHdpdGggOS1ob2xlIHBhci0zIGNvdXJzZSBhbmQgY292ZXJlZCBoZWF0ZWQgc3RhbGxzLiIsInJhdGluZ19zY29yZSI6NC4yLCJyYXRpbmdfY291bnQiOjMxMiwidGFncyI6WyJyYW5nZSIsInBhcjMiLCJoZWF0ZWRfc3RhbGxzIiwidmF1Z2hhbiJdLCJhbWVuaXRpZXMiOlsicHJvX3Nob3AiLCJsZXNzb25zIiwicGFyM19jb3Vyc2UiXX0seyJpZCI6MTQsIm5hbWUiOiJNZXRybyBHb2xmIFNwb3J0c3BsZXgiLCJzbHVnIjoibWV0cm8tZ29sZi1zcG9ydHNwbGV4LXNjYXJib3JvdWdoIiwiY2l0eSI6IlNjYXJib3JvdWdoIiwicmVnaW9uIjoiR3JlYXRlciBUb3JvbnRvIEFyZWEiLCJsYXQiOjQzLjc3ODksImxuZyI6LTc5LjI2MzQsInR5cGUiOiJEcml2aW5nIFJhbmdlIiwiaG9sZXMiOm51bGwsImZlZSI6MTUsImZlZV9sYWJlbCI6ImxhcmdlIGJ1Y2tldCIsInBob25lIjoiNDE2LTU1NS0wMTE0Iiwid2Vic2l0ZSI6Imh0dHBzOi8vbWV0cm9nb2xmLmNhIiwiZGVzY3JpcHRpb24iOiJFYXN0IFRvcm9udG8ncyBiaWdnZXN0IHJhbmdlIHdpdGggNjArIGNvdmVyZWQgc3RhbGxzLCBwdXR0aW5nIGdyZWVuLCBhbmQgc2hvcnQgZ2FtZSBhcmVhLiIsInJhdGluZ19zY29yZSI6NC4zLCJyYXRpbmdfY291bnQiOjQ0NSwidGFncyI6WyJyYW5nZSIsImxhcmdlIiwiZWFzdF90b3JvbnRvIiwiY292ZXJlZCJdLCJhbWVuaXRpZXMiOlsicHJvX3Nob3AiLCJsZXNzb25zIiwicHV0dGluZ19ncmVlbiIsInNob3J0X2dhbWUiXX0seyJpZCI6MTUsIm5hbWUiOiJDaGFwcGxlcyBHb2xmIENvdXJzZSAmIFJhbmdlIiwic2x1ZyI6ImNoYXBwbGVzLWdvbGYtdGh1bmRlci1iYXkiLCJjaXR5IjoiVGh1bmRlciBCYXkiLCJyZWdpb24iOiJOb3J0aGVybiBPbnRhcmlvIiwibGF0Ijo0OC40MzEyLCJsbmciOi04OS4yNDU2LCJ0eXBlIjoiRHJpdmluZyBSYW5nZSIsImhvbGVzIjoxOCwiZmVlIjoxNCwiZmVlX2xhYmVsIjoibGFyZ2UgYnVja2V0IiwicGhvbmUiOiI4MDctNTU1LTAxMTUiLCJ3ZWJzaXRlIjoiaHR0cHM6Ly9jaGFwcGxlc2dvbGYuY2EiLCJkZXNjcmlwdGlvbiI6IlRodW5kZXIgQmF5J3MgbW9zdCBwb3B1bGFyIHB1YmxpYyBmYWNpbGl0eSB3aXRoIDE4LWhvbGUgY291cnNlIGFuZCBmdWxsIGRyaXZpbmcgcmFuZ2UuIiwicmF0aW5nX3Njb3JlIjo0LjEsInJhdGluZ19jb3VudCI6MjM0LCJ0YWdzIjpbInJhbmdlIiwibm9ydGhlcm5fb250YXJpbyIsInRodW5kZXJfYmF5Il0sImFtZW5pdGllcyI6WyJwcm9fc2hvcCIsImxlc3NvbnMiLCJyZXN0YXVyYW50Il19LHsiaWQiOjE2LCJuYW1lIjoiRHJhZ29uIEhpbGxzIEdvbGYgJiBSYW5nZSIsInNsdWciOiJkcmFnb24taGlsbHMtdGh1bmRlci1iYXkiLCJjaXR5IjoiVGh1bmRlciBCYXkiLCJyZWdpb24iOiJOb3J0aGVybiBPbnRhcmlvIiwibGF0Ijo0OC40MTk4LCJsbmciOi04OS4yNzEyLCJ0eXBlIjoiRHJpdmluZyBSYW5nZSIsImhvbGVzIjo5LCJmZWUiOjEzLCJmZWVfbGFiZWwiOiJsYXJnZSBidWNrZXQiLCJwaG9uZSI6IjgwNy01NTUtMDExNiIsIndlYnNpdGUiOiJodHRwczovL2RyYWdvbmhpbGxzZ29sZi5jYSIsImRlc2NyaXB0aW9uIjoiRnJpZW5kbHkgVGh1bmRlciBCYXkgcmFuZ2Ugd2l0aCA5LWhvbGUgY291cnNlIGFuZCBvcGVuIGhpdHRpbmcgYmF5cy4iLCJyYXRpbmdfc2NvcmUiOjQuMCwicmF0aW5nX2NvdW50IjoxNjcsInRhZ3MiOlsicmFuZ2UiLCJub3J0aGVybl9vbnRhcmlvIl0sImFtZW5pdGllcyI6WyJwcm9fc2hvcCIsInNuYWNrX2JhciJdfSx7ImlkIjoxNywibmFtZSI6IkVtZXJhbGQgR3JlZW5zIEdvbGYgJiBSYW5nZSIsInNsdWciOiJlbWVyYWxkLWdyZWVucy10aHVuZGVyLWJheSIsImNpdHkiOiJUaHVuZGVyIEJheSIsInJlZ2lvbiI6Ik5vcnRoZXJuIE9udGFyaW8iLCJsYXQiOjQ4LjQwNTYsImxuZyI6LTg5LjI4OSwidHlwZSI6IkRyaXZpbmcgUmFuZ2UiLCJob2xlcyI6OSwiZmVlIjoxMywiZmVlX2xhYmVsIjoibGFyZ2UgYnVja2V0IiwicGhvbmUiOiI4MDctNTU1LTAxMTciLCJ3ZWJzaXRlIjoiaHR0cHM6Ly9lbWVyYWxkZ3JlZW5zZ29sZi5jYSIsImRlc2NyaXB0aW9uIjoiOS1ob2xlIGNvdXJzZSBhbmQgZHJpdmluZyByYW5nZSBpbiBUaHVuZGVyIEJheSB3aXRoIGxlc3NvbnMgYW5kIGNsdWIgcmVudGFscy4iLCJyYXRpbmdfc2NvcmUiOjQuMCwicmF0aW5nX2NvdW50IjoxNDUsInRhZ3MiOlsicmFuZ2UiLCJub3J0aGVybl9vbnRhcmlvIl0sImFtZW5pdGllcyI6WyJwcm9fc2hvcCIsImxlc3NvbnMiXX0seyJpZCI6MTgsIm5hbWUiOiJCcm9va2xlYSBQcmFjdGljZSBGYWNpbGl0eSIsInNsdWciOiJicm9va2xlYS1wcmFjdGljZS1taWRsYW5kIiwiY2l0eSI6Ik1pZGxhbmQiLCJyZWdpb24iOiJCYXJyaWUgJiBHZW9yZ2lhbiBCYXkiLCJsYXQiOjQ0Ljc1MTIsImxuZyI6LTc5Ljg3NTYsInR5cGUiOiJEcml2aW5nIFJhbmdlIiwiaG9sZXMiOm51bGwsImZlZSI6MTIsImZlZV9sYWJlbCI6ImxhcmdlIGJ1Y2tldCIsInBob25lIjoiNzA1LTU1NS0wMTE4Iiwid2Vic2l0ZSI6Imh0dHBzOi8vYnJvb2tsZWFnb2xmLmNvbSIsImRlc2NyaXB0aW9uIjoiR2VvcmdpYW4gQmF5IGFyZWEgcHJhY3RpY2UgZmFjaWxpdHkgd2l0aCBoZWF0ZWQgc3RhbGxzIGFuZCBzaG9ydCBnYW1lIGFyZWEuIiwicmF0aW5nX3Njb3JlIjo0LjEsInJhdGluZ19jb3VudCI6OTgsInRhZ3MiOlsicmFuZ2UiLCJnZW9yZ2lhbl9iYXkiLCJwcmFjdGljZSJdLCJhbWVuaXRpZXMiOlsibGVzc29ucyIsInB1dHRpbmdfZ3JlZW4iXX0seyJpZCI6MTksIm5hbWUiOiJXaGl0ZSBTYW5kcyBQcmFjdGljZSBDZW50cmUiLCJzbHVnIjoid2hpdGUtc2FuZHMtcHJhY3RpY2Utb3JsZWFucyIsImNpdHkiOiJPcmxcdTAwZTlhbnMiLCJyZWdpb24iOiJFYXN0ZXJuIE9udGFyaW8iLCJsYXQiOjQ1LjQ1MzQsImxuZyI6LTc1LjUxMjMsInR5cGUiOiJEcml2aW5nIFJhbmdlIiwiaG9sZXMiOm51bGwsImZlZSI6MTUsImZlZV9sYWJlbCI6ImxhcmdlIGJ1Y2tldCIsInBob25lIjoiNjEzLTU1NS0wMTE5Iiwid2Vic2l0ZSI6Imh0dHBzOi8vd2hpdGVzYW5kc2dvbGYuY2EiLCJkZXNjcmlwdGlvbiI6IkVhc3QgT3R0YXdhJ3MgZ28tdG8gcHJhY3RpY2UgZmFjaWxpdHkgd2l0aCBmdWxsIHJhbmdlIGFuZCBzaG9ydCBnYW1lIGdyZWVuLiIsInJhdGluZ19zY29yZSI6NC4yLCJyYXRpbmdfY291bnQiOjEzNCwidGFncyI6WyJyYW5nZSIsIm90dGF3YSIsImVhc3Rfb3R0YXdhIl0sImFtZW5pdGllcyI6WyJwcm9fc2hvcCIsImxlc3NvbnMiLCJzaG9ydF9nYW1lIl19LHsiaWQiOjIwLCJuYW1lIjoiUHV0dGluZyBFZGdlIFRvcm9udG8iLCJzbHVnIjoicHV0dGluZy1lZGdlLXRvcm9udG8iLCJjaXR5IjoiVG9yb250byIsInJlZ2lvbiI6IkdyZWF0ZXIgVG9yb250byBBcmVhIiwibGF0Ijo0My43MjM0LCJsbmciOi03OS40MTIzLCJ0eXBlIjoiTWluaSBHb2xmIiwiaG9sZXMiOjE4LCJmZWUiOjE0LCJmZWVfbGFiZWwiOiJwZXIgcGVyc29uIiwicGhvbmUiOiI0MTYtNTU1LTAxMjAiLCJ3ZWJzaXRlIjoiaHR0cHM6Ly9wdXR0aW5nZWRnZS5jb20iLCJkZXNjcmlwdGlvbiI6Ikdsb3ctaW4tdGhlLWRhcmsgbWluaSBnb2xmIGluIGEgZnVuIGluZG9vciBzZXR0aW5nLiBHcmVhdCBmb3IgZmFtaWxpZXMgYW5kIGdyb3Vwcy4iLCJyYXRpbmdfc2NvcmUiOjQuNSwicmF0aW5nX2NvdW50Ijo4OTIsInRhZ3MiOlsibWluaV9nb2xmIiwiaW5kb29yIiwiZ2xvdyIsImZhbWlseSIsImtpZHMiXSwiYW1lbml0aWVzIjpbImZvb2QiLCJhcmNhZGUiXX0seyJpZCI6MjEsIm5hbWUiOiJQdXR0aW5nIEVkZ2UgU2NhcmJvcm91Z2giLCJzbHVnIjoicHV0dGluZy1lZGdlLXNjYXJib3JvdWdoIiwiY2l0eSI6IlNjYXJib3JvdWdoIiwicmVnaW9uIjoiR3JlYXRlciBUb3JvbnRvIEFyZWEiLCJsYXQiOjQzLjc3NTYsImxuZyI6LTc5LjIzNDUsInR5cGUiOiJNaW5pIEdvbGYiLCJob2xlcyI6MTgsImZlZSI6MTQsImZlZV9sYWJlbCI6InBlciBwZXJzb24iLCJwaG9uZSI6IjQxNi01NTUtMDEyMSIsIndlYnNpdGUiOiJodHRwczovL3B1dHRpbmdlZGdlLmNvbSIsImRlc2NyaXB0aW9uIjoiRWFzdCBUb3JvbnRvIGluZG9vciBnbG93IG1pbmkgZ29sZiBcdTIwMTQgYSBmYW1pbHkgZmF2b3VyaXRlIGZvciBiaXJ0aGRheSBwYXJ0aWVzIGFuZCBkYXRlIG5pZ2h0cy4iLCJyYXRpbmdfc2NvcmUiOjQuNCwicmF0aW5nX2NvdW50Ijo2OTIsInRhZ3MiOlsibWluaV9nb2xmIiwiaW5kb29yIiwiZ2xvdyIsImZhbWlseSIsImtpZHMiXSwiYW1lbml0aWVzIjpbImZvb2QiLCJhcmNhZGUiXX0seyJpZCI6MjIsIm5hbWUiOiJQdXR0aW5nIEVkZ2UgV2hpdGJ5Iiwic2x1ZyI6InB1dHRpbmctZWRnZS13aGl0YnkiLCJjaXR5IjoiV2hpdGJ5IiwicmVnaW9uIjoiR3JlYXRlciBUb3JvbnRvIEFyZWEiLCJsYXQiOjQzLjg5MzQsImxuZyI6LTc4Ljk0MjMsInR5cGUiOiJNaW5pIEdvbGYiLCJob2xlcyI6MTgsImZlZSI6MTQsImZlZV9sYWJlbCI6InBlciBwZXJzb24iLCJwaG9uZSI6IjkwNS01NTUtMDEyMiIsIndlYnNpdGUiOiJodHRwczovL3B1dHRpbmdlZGdlLmNvbSIsImRlc2NyaXB0aW9uIjoiRHVyaGFtIFJlZ2lvbidzIGluZG9vciBnbG93IG1pbmkgZ29sZiBkZXN0aW5hdGlvbi4gT3BlbiB5ZWFyLXJvdW5kLiIsInJhdGluZ19zY29yZSI6NC4zLCJyYXRpbmdfY291bnQiOjQ0NSwidGFncyI6WyJtaW5pX2dvbGYiLCJpbmRvb3IiLCJnbG93IiwiZmFtaWx5IiwiZHVyaGFtIl0sImFtZW5pdGllcyI6WyJmb29kIiwiYXJjYWRlIl19LHsiaWQiOjIzLCJuYW1lIjoiUHV0dGluZyBFZGdlIE5lcGVhbiIsInNsdWciOiJwdXR0aW5nLWVkZ2UtbmVwZWFuIiwiY2l0eSI6Ik5lcGVhbiIsInJlZ2lvbiI6IkVhc3Rlcm4gT250YXJpbyIsImxhdCI6NDUuMzIzNCwibG5nIjotNzUuNzYyMywidHlwZSI6Ik1pbmkgR29sZiIsImhvbGVzIjoxOCwiZmVlIjoxNCwiZmVlX2xhYmVsIjoicGVyIHBlcnNvbiIsInBob25lIjoiNjEzLTU1NS0wMTIzIiwid2Vic2l0ZSI6Imh0dHBzOi8vcHV0dGluZ2VkZ2UuY29tIiwiZGVzY3JpcHRpb24iOiJPdHRhd2EncyBnby10byBpbmRvb3IgbWluaSBnb2xmIGZvciBmYW1pbGllcy4gR2xvdy1pbi10aGUtZGFyayAxOC1ob2xlIGNvdXJzZS4iLCJyYXRpbmdfc2NvcmUiOjQuNCwicmF0aW5nX2NvdW50Ijo1MzQsInRhZ3MiOlsibWluaV9nb2xmIiwiaW5kb29yIiwiZ2xvdyIsImZhbWlseSIsIm90dGF3YSJdLCJhbWVuaXRpZXMiOlsiZm9vZCIsImFyY2FkZSJdfSx7ImlkIjoyNCwibmFtZSI6IlB1dHQgSW4gR2xvdyBPYWt2aWxsZSIsInNsdWciOiJwdXR0LWluLWdsb3ctb2FrdmlsbGUiLCJjaXR5IjoiT2FrdmlsbGUiLCJyZWdpb24iOiJHcmVhdGVyIFRvcm9udG8gQXJlYSIsImxhdCI6NDMuNDUzNCwibG5nIjotNzkuNjgyMywidHlwZSI6Ik1pbmkgR29sZiIsImhvbGVzIjoxOCwiZmVlIjoxNiwiZmVlX2xhYmVsIjoicGVyIHBlcnNvbiIsInBob25lIjoiOTA1LTU1NS0wMTI0Iiwid2Vic2l0ZSI6Imh0dHBzOi8vcHV0dGluZ2xvdy5jYSIsImRlc2NyaXB0aW9uIjoiT2FrdmlsbGUncyBuZXdlc3QgaW5kb29yIG1pbmkgZ29sZiBleHBlcmllbmNlIHdpdGggVVYgZ2xvdyBlZmZlY3RzIGFuZCBjcmVhdGl2ZSBob2xlIGRlc2lnbnMuIiwicmF0aW5nX3Njb3JlIjozLjksInJhdGluZ19jb3VudCI6ODcxLCJ0YWdzIjpbIm1pbmlfZ29sZiIsImluZG9vciIsImdsb3ciLCJvYWt2aWxsZSJdLCJhbWVuaXRpZXMiOlsiZm9vZCIsImxvdW5nZSJdfV0='));
+
+const AMENITY_LABELS = {
+  bar:'🍺 Bar', lounge:'🛋️ Lounge', food:'🍔 Food', arcade:'🕹️ Arcade',
+  lessons:'📚 Lessons', pro_shop:'🛍️ Pro Shop', putting_green:'⛳ Putting Green',
+  short_game:'🎯 Short Game', par3_course:'🏌️ Par-3 Course',
+  restaurant:'🍽️ Restaurant', snack_bar:'🥨 Snack Bar',
+  heated_stalls:'🔥 Heated Stalls', private_events:'🎉 Events', leagues:'🏆 Leagues'
+};
+
+const TYPE_CLASS = {'Simulator':'sim','Driving Range':'range','Mini Golf':'mini'};
+const ACCENT_CLASS = {'Simulator':'accent-sim','Driving Range':'accent-range','Mini Golf':'accent-mini'};
+const BADGE_CLASS = {'Simulator':'badge-sim','Driving Range':'badge-range','Mini Golf':'badge-mini'};
+
+let state = { type:'All', region:'', sort:'rating', page:1, perPage:24 };
+
+function filtered() {
+  let v = [...VENUES];
+  if (state.type !== 'All') v = v.filter(x => x.type === state.type);
+  if (state.region) v = v.filter(x => x.region === state.region);
+  if (state.sort === 'az') v.sort((a,b) => a.name.localeCompare(b.name));
+  else if (state.sort === 'price_asc') v.sort((a,b) => (a.fee||999)-(b.fee||999));
+  else if (state.sort === 'price_desc') v.sort((a,b) => (b.fee||0)-(a.fee||0));
+  else v.sort((a,b) => (b.rating_score||0)-(a.rating_score||0));
+  return v;
+}
+
+function render() {
+  const all = filtered();
+  const page = all.slice(0, state.page * state.perPage);
+  const grid = document.getElementById('venueGrid');
+  const rc = document.getElementById('resultsCount');
+  const lmw = document.getElementById('loadMoreWrap');
+  if (rc) rc.textContent = all.length + ' venues';
+  if (all.length === 0) {
+    grid.innerHTML = '<div class="no-results"><h3>No venues found</h3><p>Try adjusting your filters</p></div>';
+    lmw.style.display = 'none';
+    return;
+  }
+  grid.innerHTML = page.map(renderCard).join('');
+  grid.querySelectorAll('[data-id]').forEach(el => {
+    el.addEventListener('click', () => openModal(parseInt(el.dataset.id)));
+  });
+  lmw.style.display = all.length > page.length ? 'block' : 'none';
+  // Update stats
+  const sims = VENUES.filter(v => v.type === 'Simulator').length;
+  const ranges = VENUES.filter(v => v.type === 'Driving Range').length;
+  const minis = VENUES.filter(v => v.type === 'Mini Golf').length;
+  document.getElementById('statSim').textContent = sims;
+  document.getElementById('statRange').textContent = ranges;
+  document.getElementById('statMini').textContent = minis;
+}
+
+function renderCard(v) {
+  const tc = TYPE_CLASS[v.type] || 'sim';
+  const ac = ACCENT_CLASS[v.type] || 'accent-sim';
+  const bc = BADGE_CLASS[v.type] || 'badge-sim';
+  const fee = v.fee ? '$' + v.fee : 'Call';
+  const feeLabel = v.fee_label || '';
+  const rating = v.rating_score
+    ? '<div class="card-rating"><svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><path d="M6 1l1.4 3h3.1l-2.5 1.9.9 3L6 7.3 3.1 8.9l.9-3L1.5 4H4.6z"/></svg>' + v.rating_score + '</div>'
+    : '';
+  const tagHtml = (v.tags||[]).slice(0,3).map(t =>
+    '<span class="card-tag">' + t.replace(/_/g,' ') + '</span>'
+  ).join('');
+  return '<div class="venue-card" data-id="' + v.id + '">'
+    + '<div class="card-accent ' + ac + '"></div>'
+    + '<div class="card-body">'
+    + '<div class="card-top">'
+    + '<div><span class="badge ' + bc + '">' + v.type + '</span><div class="card-name">' + v.name + '</div></div>'
+    + '<div class="card-fee"><div class="card-fee-num">' + fee + '</div><span class="card-fee-label">' + feeLabel + '</span></div>'
+    + '</div>'
+    + '<div class="card-location"><svg width="9" height="11" viewBox="0 0 10 12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5" cy="4.5" r="2.5"/><path d="M5 12C5 12 1 7.5 1 4.5a4 4 0 018 0C9 7.5 5 12 5 12z"/></svg>' + v.city + '</div>'
+    + '<p class="card-desc">' + (v.description || '') + '</p>'
+    + (tagHtml ? '<div class="card-tags">' + tagHtml + '</div>' : '')
+    + '<div class="card-footer">' + rating
+    + '<button class="card-action ' + tc + '">View Details</button>'
+    + '</div>'
+    + '</div></div>';
+}
+
+function openModal(id) {
+  const v = VENUES.find(x => x.id === id);
+  if (!v) return;
+  const tc = TYPE_CLASS[v.type] || 'sim';
+  const ac = ACCENT_CLASS[v.type] || 'accent-sim';
+  const bc = BADGE_CLASS[v.type] || 'badge-sim';
+  document.getElementById('modalAccent').className = 'modal-accent ' + ac;
+  const badge = document.getElementById('modalBadge');
+  badge.textContent = v.type;
+  badge.className = 'badge ' + bc;
+  document.getElementById('modalTitle').textContent = v.name;
+  document.getElementById('modalLocation').textContent = v.city + ', Ontario';
+  document.getElementById('modalDesc').textContent = v.description || '';
+  document.getElementById('modalPrice').textContent = v.fee ? '$' + v.fee : 'Call for rates';
+  document.getElementById('modalPriceLabel').textContent = v.fee_label || '';
+  document.getElementById('modalRating').innerHTML = v.rating_score
+    ? '<div style="text-align:right"><div style="font-family:Cormorant Garamond,serif;font-size:28px;font-weight:300;color:var(--forest)">' + v.rating_score + ' ⭐</div><div style="font-size:11px;color:var(--mist)">(' + (v.rating_count||0) + ' reviews)</div></div>'
+    : '';
+  document.getElementById('modalAmenities').innerHTML = (v.amenities||[]).map(a =>
+    '<span class="amenity-chip">' + (AMENITY_LABELS[a] || a.replace(/_/g,' ')) + '</span>'
+  ).join('');
+  let actions = '<button class="btn-primary ' + tc + '" data-website="' + (v.website||'') + '" onclick="var w=this.getAttribute(\'data-website\');if(w)window.open(w,\'_blank\');else alert(\'No website listed\')">Book / Reserve</button>';
+  if (v.phone) actions += '<button class="btn-secondary" onclick="window.location='tel:' + v.phone + ''">📞 Call</button>';
+  document.getElementById('modalActions').innerHTML = actions;
+  let contact = '';
+  if (v.website) contact += '<a href="' + v.website + '" target="_blank">🌐 ' + v.website.replace(/https?:\/\//, '') + '</a>';
+  document.getElementById('modalContact').innerHTML = contact;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModalBtn();
+}
+function closeModalBtn() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalBtn(); });
+
+function setType(t) {
+  state.type = t; state.page = 1;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active','active-sim','active-range','active-mini'));
+  const map = {'All':'btnAll','Simulator':'btnSim','Driving Range':'btnRange','Mini Golf':'btnMini'};
+  const cls = {'All':'active','Simulator':'active-sim','Driving Range':'active-range','Mini Golf':'active-mini'};
+  const btn = document.getElementById(map[t]);
+  if (btn) btn.classList.add(cls[t]);
+  render();
+}
+
+function setRegion(v) { st

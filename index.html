@@ -77,7 +77,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:cen
 
 /* ── FILTERS BAR ── */
 .filters-section{background:var(--forest);padding:0;position:sticky;top:64px;z-index:100;border-bottom:1px solid rgba(138,171,110,.12)}
-.filters-inner{max-width:1280px;margin:0 auto;padding:0 40px;display:flex;align-items:center;gap:0;overflow-x:auto;scrollbar-width:none}
+.filters-inner{max-width:1280px;margin:0 auto;padding:0 40px;display:flex;align-items:center;gap:0;overflow-x:visible;scrollbar-width:none}
+.filters-scroll{display:flex;align-items:center;gap:0;overflow-x:auto;scrollbar-width:none;flex:1}
 .filters-inner::-webkit-scrollbar{display:none}
 .filter-group{display:flex;align-items:center;gap:0;flex-shrink:0}
 .filter-divider{width:1px;height:20px;background:rgba(138,171,110,.2);margin:0 4px;flex-shrink:0}
@@ -356,6 +357,7 @@ footer{background:var(--forest);padding:56px 0 32px;border-top:1px solid rgba(13
 <!-- FILTERS -->
 <section class="filters-section" id="filters">
   <div class="filters-inner">
+  <div class="filters-scroll">
     <div class="filter-group">
       <button class="filter-btn active" onclick="setFilter('type','All')">All</button>
       <button class="filter-btn" onclick="setFilter('type','Public')">Public</button>
@@ -404,8 +406,10 @@ footer{background:var(--forest);padding:56px 0 32px;border-top:1px solid rgba(13
       <button class="filter-btn" id="bucketBtn" onclick="toggleBucket()" title="Show bucket-list courses">⭐ Bucket List</button>
     </div>
     <span class="results-count" id="resultsCount"></span>
+  </div><!-- end filters-scroll -->
 
-  <div style="margin-left:auto;padding:0 16px 0 8px;flex-shrink:0">
+  <!-- View toggle — outside scroll so always visible -->
+  <div style="flex-shrink:0;padding:0 20px 0 12px;border-left:1px solid rgba(255,255,255,.1);display:flex;align-items:center">
     <div class="view-toggle">
       <button class="view-btn active" id="gridViewBtn" onclick="setView('grid')" title="Grid view">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="8" y="0" width="6" height="6" rx="1"/><rect x="0" y="8" width="6" height="6" rx="1"/><rect x="8" y="8" width="6" height="6" rx="1"/></svg>
